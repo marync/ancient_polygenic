@@ -10,7 +10,6 @@ vstar = 99.5
 
 # plot for tau in [0,1]
 obj = PlotTheory (avals=avals, ns=[1e3,1e4,1e5], times=times, outputdir='../figures/longtime')
-obj = PlotTheory (avals=avals, ns=[1e3,1e4,1e5], times=times, outputdir='.')
 obj.process (vstar=vstar)
 
 # plot for tau in [0,0.2]
