@@ -4,10 +4,10 @@
 *.fdb_latexmk
 *.fls
 *.log
-notes/gwas_notes.pdf
 *.gz
 *.xdv
 *.pyc
+*.swp
 
 *.nav
 *.out
