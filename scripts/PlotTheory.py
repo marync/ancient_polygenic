@@ -8,6 +8,7 @@ import matplotlib as mpl
 import collections
 import pandas as pd
 
+
 # my code
 from EqualTheory import EqualTheory
 
@@ -46,6 +47,26 @@ def compute_d_ell (n, alpha=1e-8, vp=2, beta=1, vstar=None) :
         gammab =  np.round (n * (1. - np.sqrt (1. - ((2.*vstar)/n))))
 
     return gammab
+
+# Define function for string formatting of scientific notation
+# adapted from: https://stackoverflow.com/questions/18311909/how-do-i-annotate-with-power-of-ten-formatting
+def sci_notation(num, decimal_digits=1, precision=0, exponent=None):
+    """
+    Formats number into scientific notation
+    """
+    if exponent is None:
+        exponent = int(np.floor(np.log10(abs(num))))
+    coeff = round(num / float(10**exponent), decimal_digits)
+    if precision is None:
+        precision = decimal_digits
+
+    if coeff == 1. :
+        out = r'$10^{{{0}}}$'.format(exponent)
+    else :
+        out = r'${0:.{2}f}\cdot10^{{{1:d}}}$'.format(coeff,exponent,precision)
+
+    return out 
+
 
 
 #-------------------------------------------------------------------------------
@@ -89,23 +110,29 @@ class PlotTheory :
         if not os.path.exists(self.outputdir) :
             os.mkdir(self.outputdir)
 
-    def process (self, vstar=None) :
+    def process (self, range_ds, vstar=None) :
 
         # create dictionary for low values of d
-        dellsLow = np.array([compute_d_ell (n=ni, vp=1, beta=0.575) for ni in self.ns])
+        #dellsLow = np.array([compute_d_ell (n=ni, vp=1, beta=0.575) for ni in self.ns])
+        #self.plot_vas_and_mses (n=1e4, ds=dellsLow, extrads=np.array([1,10,100,1000,5000,10000]), mutationrates=self.avals[1], approx=True)
+        #self.plot_vas_and_mses (n=1e4, ds=dellsLow, extrads=np.array([1,10,100,1000,5000,10000]), mutationrates=self.avals[1], approx=False)
+        dellsLow = np.array([compute_d_ell (n=ni, vp=1, beta=0.1) for ni in self.ns])
+        print ('ns: ' + str(self.ns))
+        print ('ds: ' + str(dellsLow))
         self.theoryDictLow = self.create_theory_dictionary (ds=dellsLow)
-        self.plot_vas_and_mses (n=1e4, ds=dellsLow, extrads=np.array([1,10,100,1000,5000,10000]), mutationrates=self.avals[1], approx=True)
-        self.plot_vas_and_mses (n=1e4, ds=dellsLow, extrads=np.array([1,10,100,1000,5000,10000]), mutationrates=self.avals[1], approx=False)
+        self.plot_vas_and_mses (n=1e5, ds=dellsLow, extrads=range_ds, mutationrates=self.avals[1], approx=True)
+        self.plot_vas_and_mses (n=1e5, ds=dellsLow, extrads=range_ds, mutationrates=self.avals[1], approx=False)
 
         # compute stats for a higher threshold
-        dellsHigh = np.array([compute_d_ell (n=ni, vp=10, beta=1.) for ni in self.ns])
-        self.theoryDictHigh = self.create_theory_dictionary (ds=dellsLow)
+        dellsHigh = np.array([compute_d_ell (n=ni, vp=1, beta=.5) for ni in self.ns])
+        print ('high ds: ' + str(dellsHigh))
+        self.theoryDictHigh = self.create_theory_dictionary (ds=dellsHigh)
 
         # denser grid
         denseas   = np.logspace (-4, 0, 50)
-        densens   = np.logspace (3,5,40)
-        denseellsLow  = [compute_d_ell (n=int(ni), vp=1, beta=0.575) for ni in densens]
-        denseellsHigh = [compute_d_ell (n=int(ni), vp=10, beta=.9) for ni in densens]
+        densens   = np.logspace (4,6,20)
+        denseellsLow  = [compute_d_ell (n=int(ni), vp=1, beta=0.5) for ni in densens]
+        denseellsHigh = [compute_d_ell (n=int(ni), vp=1, beta=.1) for ni in densens]
 
         # create dense dictionaries
         theoryDictDenseLow  = self.create_theory_dictionary (ds=denseellsLow, avals=denseas, nvals=densens)
@@ -117,7 +144,7 @@ class PlotTheory :
 
         # plot bias figure
         self.plot_asymmetric_bias (avals=[1e-4,1e-3,1e-2,1], d1=1, threshold_as_n=True)
-        self.plot_p3d (avals=[1e-3, 1], ns=densens, ds=np.arange(1,1001,1), cmap=['Blues', 'Greys'], log=[False, True])
+        #self.plot_p3d (avals=[1e-3, 1], ns=densens, ds=np.arange(1,1e4,1), cmap=['Blues', 'Greys'], log=[False, True])
 
 
     def plot_mse_and_va_heatmaps (self, avals, nvals, theorydictlow, theorydicthigh, normalize=False) :
@@ -253,13 +280,20 @@ class PlotTheory :
             custom_lines_n.append (mpl.lines.Line2D([0], [0], color='k', marker=self.markers[i], alpha=alphas[i], lw=1.25, linestyle='-'))
 
         # now add legends
-        legmutation = axs[0,0].legend (lines_mutation, self.avals, title=r'mutation, $a$', bbox_to_anchor=(-0.2,1.0), frameon=False) #prop={'size': 12})
-        legn = axs[0,0].legend (custom_lines_n, self.ns, title=r'$n$', bbox_to_anchor=(-0.2,0.55), frameon=False) #prop={'size': 12}, 
+        formatted_ns  = [sci_notation(ni) for ni in self.ns]
+        formatted_mus = [sci_notation(ai) for ai in self.avals]
+        formatted_ds  = [sci_notation(di) for di in extrads] 
+
+        #legmutation = axs[0,0].legend (lines_mutation, self.avals, title=r'mutation, $a$', bbox_to_anchor=(-0.2,1.0), frameon=False) #prop={'size': 12})
+        #legn = axs[0,0].legend (custom_lines_n, self.ns, title=r'$n$', bbox_to_anchor=(-0.2,0.55), frameon=False) #prop={'size': 12}, 
+        legmutation = axs[0,0].legend (lines_mutation, formatted_mus, title=r'mutation, $a$', bbox_to_anchor=(-0.2,1.0), frameon=False) #prop={'size': 12})
+        legn = axs[0,0].legend (custom_lines_n, formatted_ns, title=r'$n$', bbox_to_anchor=(-0.2,0.55), frameon=False) #prop={'size': 12}, 
         axs[0,0].add_artist(legmutation)
         axs[0,0].add_artist(legn)
 
         # d legend
-        legd = axs[0,0].legend (lines_d, extrads, title=r'$d$', frameon=False, bbox_to_anchor=(-0.2,0.1)) #prop={'size': 12},  
+        legd = axs[0,0].legend (lines_d, formatted_ds, title=r'$d$', frameon=False, bbox_to_anchor=(-0.2,0.1)) #prop={'size': 12},  
+        #legd = axs[0,0].legend (lines_d, extrads, title=r'$d$', frameon=False, bbox_to_anchor=(-0.2,0.1)) #prop={'size': 12},  
         axs[0,0].add_artist(legd)
 
         # save figure
