@@ -11,6 +11,7 @@ import pandas as pd
 
 # my code
 from EqualTheory import EqualTheory
+from plot_simulations_helper import sci_notation, compute_d_ell
 
 #-------------------------------------------------------------------------------
 # plotting parameters
@@ -26,47 +27,6 @@ params = {'legend.fontsize': 14,
           'xtick.labelsize': 11,
           'ytick.labelsize': 11}
 mpl.rcParams.update(params)
-
-
-#-------------------------------------------------------------------------------
-# auxiliary function
-def compute_d_ell (n, alpha=1e-8, vp=2, beta=1, vstar=None) :
-    """
-    Computes the threshold gamma for a given parameter specification.
-    """
-
-    if vstar is None :
-        vstar  = 2. * scipy.special.erfinv (1. - alpha)**2
-        term = 1 - (2. * vstar * (vp / n) / (beta**2))
-        if term < 0 :
-            gammab = float("NaN")
-        else :
-            gammab = np.ceil (2.*n* (0.5 - 0.5 * np.sqrt (term)))
-
-    else :
-        gammab =  np.round (n * (1. - np.sqrt (1. - ((2.*vstar)/n))))
-
-    return gammab
-
-# Define function for string formatting of scientific notation
-# adapted from: https://stackoverflow.com/questions/18311909/how-do-i-annotate-with-power-of-ten-formatting
-def sci_notation(num, decimal_digits=1, precision=0, exponent=None):
-    """
-    Formats number into scientific notation
-    """
-    if exponent is None:
-        exponent = int(np.floor(np.log10(abs(num))))
-    coeff = round(num / float(10**exponent), decimal_digits)
-    if precision is None:
-        precision = decimal_digits
-
-    if coeff == 1. :
-        out = r'$10^{{{0}}}$'.format(exponent)
-    else :
-        out = r'${0:.{2}f}\cdot10^{{{1:d}}}$'.format(coeff,exponent,precision)
-
-    return out 
-
 
 
 #-------------------------------------------------------------------------------
@@ -110,7 +70,7 @@ class PlotTheory :
         if not os.path.exists(self.outputdir) :
             os.mkdir(self.outputdir)
 
-    def process (self, range_ds, vstar=None) :
+    def process (self, range_ds, focaln=1e4, focala=1e-3, vstar=None, showapprox=False) :
 
         # create dictionary for low values of d
         #dellsLow = np.array([compute_d_ell (n=ni, vp=1, beta=0.575) for ni in self.ns])
@@ -120,19 +80,27 @@ class PlotTheory :
         print ('ns: ' + str(self.ns))
         print ('ds: ' + str(dellsLow))
         self.theoryDictLow = self.create_theory_dictionary (ds=dellsLow)
-        self.plot_vas_and_mses (n=1e5, ds=dellsLow, extrads=range_ds, mutationrates=self.avals[1], approx=True)
-        self.plot_vas_and_mses (n=1e5, ds=dellsLow, extrads=range_ds, mutationrates=self.avals[1], approx=False)
+        self.plot_vas_and_mses (n=focaln, ds=dellsLow, extrads=range_ds, mutationrates=focala, approx=showapprox)
+        #self.plot_vas_and_mses (n=focaln, ds=dellsLow, extrads=range_ds, mutationrates=self.avals[1], approx=False)
 
         # compute stats for a higher threshold
-        dellsHigh = np.array([compute_d_ell (n=ni, vp=1, beta=.5) for ni in self.ns])
-        print ('high ds: ' + str(dellsHigh))
-        self.theoryDictHigh = self.create_theory_dictionary (ds=dellsHigh)
+        #dellsHigh = np.array([compute_d_ell (n=ni, vp=1, beta=.5) for ni in self.ns])
+        #print ('high ds: ' + str(dellsHigh))
+        #self.theoryDictHigh = self.create_theory_dictionary (ds=dellsHigh)
+
+
+    def make_dense_plots (self, denseas, densens, lowbeta, highbeta) :
 
         # denser grid
-        denseas   = np.logspace (-4, 0, 50)
-        densens   = np.logspace (4,6,20)
+        #denseas   = np.logspace (-4, 0, 50)
+        #densens   = np.logspace (4,6,20)
         denseellsLow  = [compute_d_ell (n=int(ni), vp=1, beta=0.5) for ni in densens]
         denseellsHigh = [compute_d_ell (n=int(ni), vp=1, beta=.1) for ni in densens]
+        print ('minimum low d: ' + str(np.min (denseellsLow)))
+        print ('maximum low d: ' + str(np.max (denseellsLow)))
+        print ('minimum high d: ' + str(np.min (denseellsHigh)))
+        print ('maximum high d: ' + str(np.max (denseellsHigh)))
+
 
         # create dense dictionaries
         theoryDictDenseLow  = self.create_theory_dictionary (ds=denseellsLow, avals=denseas, nvals=densens)
@@ -142,9 +110,6 @@ class PlotTheory :
         self.plot_mse_and_va_heatmaps (avals=denseas, nvals=densens, theorydictlow=theoryDictDenseLow, theorydicthigh=theoryDictDenseHigh, normalize=False)
         self.plot_mse_and_va_heatmaps (avals=denseas, nvals=densens, theorydictlow=theoryDictDenseLow, theorydicthigh=theoryDictDenseHigh, normalize=True)
 
-        # plot bias figure
-        self.plot_asymmetric_bias (avals=[1e-4,1e-3,1e-2,1], d1=1, threshold_as_n=True)
-        #self.plot_p3d (avals=[1e-3, 1], ns=densens, ds=np.arange(1,1e4,1), cmap=['Blues', 'Greys'], log=[False, True])
 
 
     def plot_mse_and_va_heatmaps (self, avals, nvals, theorydictlow, theorydicthigh, normalize=False) :
@@ -208,7 +173,7 @@ class PlotTheory :
         axs[1,2].set_title (r'(f) ' + normstring + r' $\hat V_{A\ell} (0)$, high $d$') 
 
         fig.tight_layout(pad=.75)
-        plt.savefig(os.path.join(self.outputdir, 'initial_mse_va' + normstring + '.pdf'),bbox_inches='tight') 
+        plt.savefig(os.path.join(self.outputdir, 'figure_S3' + normstring + '.pdf'),bbox_inches='tight') 
         plt.close()
 
  
@@ -253,6 +218,12 @@ class PlotTheory :
         Plot the six plot figure for mse and eva.
         """
 
+        if approx :
+            outname = 'figure_S4'
+        else :
+            outname = 'figure_2'
+
+
         if mutationrates is None :
             mutationrates = cp.deepcopy(self.avals)
 
@@ -272,7 +243,7 @@ class PlotTheory :
 
         lines_mutation = []
         for i in range(len(self.avals)) :
-            lines_mutation.append (mpl.lines.Line2D([0], [0], color=colors[i], lw=0.75, linestyle='-'))
+            lines_mutation.append (mpl.lines.Line2D([0], [0], color=colors[i], lw=1.25, linestyle='-'))
 
         # custom n lines
         custom_lines_n = []
@@ -298,7 +269,7 @@ class PlotTheory :
 
         # save figure
         fig.tight_layout(pad=0.75)
-        plt.savefig(os.path.join(self.outputdir, 'mse_and_va' + '_' + str(approx) + '.pdf'),bbox_inches='tight')
+        plt.savefig(os.path.join(self.outputdir, outname + '.pdf'),bbox_inches='tight')
         plt.close()
 
 
@@ -318,7 +289,6 @@ class PlotTheory :
             colori = colors[i]
 
             if ai in mutationrates :
-
                 for j in range (len(extrads)) :
                     theory = EqualTheory(a=ai, d=extrads[j], n=n, times=self.taus)
                     theory.process ()
@@ -441,7 +411,7 @@ class PlotTheory :
         return (num / denom)
 
 
-    def plot_p3d (self, avals, ns, ds, cmap='Greys', out='a', log=False) :
+    def plot_p3d (self, avals, ns, ds, cmap='Greys', log=False) :
         """
         """
 
@@ -463,11 +433,11 @@ class PlotTheory :
 
             fig.colorbar(pcm, ax=axs[i])
             axs[i].set_xscale ('log')
-            axs[i].set_ylabel(r'detection thresholds, $d_\ell$', rotation=90)
+            axs[i].set_ylabel(r'$d_\ell$', rotation=90)
             axs[i].set_title (r'$a=$'+ ' ' + str(avals[i]))
 
         axs[1].set_xlabel(r'GWA study size, $n$')
-        plt.savefig(os.path.join(self.outputdir, 'p3_' + str(out) + '.pdf'),
+        plt.savefig(os.path.join(self.outputdir, 'figure_S2b.pdf'),
                     bbox_inches='tight')
         plt.close()
 
@@ -518,14 +488,17 @@ class PlotTheory :
 
         lines_mutation = []
         for i in range(len(avals)) :
-            lines_mutation.append (mpl.lines.Line2D([0], [0], color=colors[i], lw=0.75, linestyle='-'))
+            lines_mutation.append (mpl.lines.Line2D([0], [0], color=colors[i], lw=1.25, linestyle='-'))
 
-        legmutation = ax.legend (lines_mutation, avals, title=r'mutation, $a$', prop={'size': 10}, bbox_to_anchor=(-0.15,0.8), frameon=False)
-        legn = ax.legend (custom_lines_n, self.ns, title=r'$n$', prop={'size': 10}, bbox_to_anchor=(-0.15,0.55), frameon=False)
+        formatted_mus = [sci_notation(ai) for ai in avals]
+        formatted_ns  = [sci_notation(ni) for ni in self.ns]
+
+        legmutation = ax.legend (lines_mutation, formatted_mus, title=r'mutation, $a$', bbox_to_anchor=(-0.15,0.9), frameon=False)
+        legn = ax.legend (custom_lines_n, formatted_ns, title=r'$n$', bbox_to_anchor=(-0.15,0.5), frameon=False)
         ax.add_artist(legmutation)
         ax.add_artist(legn)
 
         ax.set_xlabel(r'ancient sampling time $\tau$')
-        plt.savefig(os.path.join(self.outputdir, 'asymm_bias.pdf'), bbox_inches='tight')
+        plt.savefig(os.path.join(self.outputdir, 'figure_S2a.pdf'), bbox_inches='tight')
         plt.close()
 

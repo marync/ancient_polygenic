@@ -7,6 +7,49 @@ import collections
 
 # my code
 from EqualTheory import *
+
+#-------------------------------------------------------------------------------
+# Define function for string formatting of scientific notation
+# adapted from: https://stackoverflow.com/questions/18311909/how-do-i-annotate-with-power-of-ten-formatting
+def sci_notation(num, decimal_digits=1, precision=0, exponent=None):
+    """
+    Formats number into scientific notation
+    """
+    if exponent is None:
+        exponent = int(np.floor(np.log10(abs(num))))
+    coeff = round(num / float(10**exponent), decimal_digits)
+    if precision is None:
+        precision = decimal_digits
+
+    if exponent == 0. :
+        out = str(num)
+    elif coeff == 1. :
+        out = r'$10^{{{0}}}$'.format(exponent)
+    else :
+        out = r'${0:.{2}f}\cdot10^{{{1:d}}}$'.format(coeff,exponent,precision)
+
+    return out 
+
+
+def compute_d_ell (n, alpha=1e-8, vp=2, beta=1, vstar=None) :
+    """
+    Computes the threshold gamma for a given parameter specification.
+    """
+
+    if vstar is None :
+        vstar  = 2. * scipy.special.erfinv (1. - alpha)**2
+        term = 1 - (2. * vstar * (vp / n) / (beta**2))
+        if term < 0 :
+            gammab = float("NaN")
+        else :
+            gammab = np.ceil (2.*n* (0.5 - 0.5 * np.sqrt (term)))
+
+    else :
+        gammab =  np.round (n * (1. - np.sqrt (1. - ((2.*vstar)/n))))
+
+    return gammab
+
+
 #-------------------------------------------------------------------------------
 # plotting parameters
 
@@ -27,12 +70,12 @@ mpl.rcParams.update(params)
 # plot features
 
 linestyles = collections.OrderedDict(
-    [(1,      (0, (1, 1))),
-     (10, (0, (3, 1, 1, 1))),
-     (100,               (0, ())),
-     (1000,      (0, (5, 1))),
-     (5000, (0, (3, 1, 1, 1, 1, 1))),
-     (10000,              (0, (1, 5))),
+    [(10,      (0, (1, 1))),
+     (100, (0, (3, 1, 1, 1))),
+     (1000,               (0, ())),
+     (10000,      (0, (5, 1))),
+     (50000, (0, (3, 1, 1, 1, 1, 1))),
+     (100000,              (0, (1, 5))),
      ('dashdotted',          (0, (3, 5, 1, 5))),
      ('dashed',              (0, (5, 5))),
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
@@ -85,7 +128,8 @@ def plot_accuracies_a_b (axs, h2, aval, n, ds, times) :
 
     axins.invert_xaxis ()
     axins.locator_params (axis="y", nbins=2)
-    axs.legend (custom_lines_ds, ds, title=r'$d$', loc='lower right', bbox_to_anchor=(-0.15,0.5), frameon=False)
+    formatted_ds = [sci_notation(di) for di in ds]
+    axs.legend (custom_lines_ds, formatted_ds, title=r'$d$', loc='lower right', bbox_to_anchor=(-0.15,0.5), frameon=False)
 
     return axs
 
@@ -104,9 +148,9 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
     markers = ['o','x','v']
 
     if stat == 'bias' :
-        title = r'(a) $bias (\tau )$'
+        title = r'(a) $bias_\ell (\tau )$'
     elif stat == 'mse' :
-        title = r'(b) $mse (\tau )$'
+        title = r'(b) $mse_\ell (\tau )$'
     elif (stat == 'rho2_trait' or stat == 'rho_tau') and not relative :
         title = r'(c) accuracy'
     elif stat == 'rho2_trait' and relative :
@@ -211,9 +255,9 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
         theories  = []
         for i in range(len(thresholds)) :
             handles_d.append (mpl.lines.Line2D([], [], color='black', alpha=alphas[i], marker=markers[i], linestyle='None',
-                                         markersize=5, label=thresholds[i]))
+                                         markersize=5, label=sci_notation(thresholds[i])))
             theories.append (mpl.lines.Line2D([0], [0], linestyle=linestyles[linestylelist[2+i]],
-                             label=r'$d=$ ' + str(thresholds[i]), color='black', linewidth=1))
+                             label=r'$d=$ ' + sci_notation(thresholds[i]), color='black', linewidth=1))
 
         legend_d = ax.legend(handles=handles_d, title=r'$d$', frameon=False, bbox_to_anchor=(-0.25,0.8))
 

@@ -38,27 +38,33 @@ colors = ['#377eb8', '#ff7f00', '#4daf4a',
 #-------------------------------------------------------------------------------
 # to produce figure 3
 #inputdir  = '../data/heritability'
-#h2        = True
+inputdir = '../data/testingherit'
+preambles = ['d10000'] # sub-directory names referring to thresholds
+thresholds = [10000]
+h2        = True
 
 # to produce figure 4
-inputdir  = '../data/selection'
+#inputdir  = '../data/selection'
+inputdir  = '../data/testing'
+preambles = ['d1000','d10000'] # sub-directory names referring to thresholds
+thresholds = [1000,10000]
 h2        = False
 
 # shared parameters
 a         = 1e-3 # population scaled mut. rate
 nsim      = 5000 # number of simulations
-preambles = ['d100','d1000'] # sub-directory names referring to thresholds
+#preambles = ['d100','d1000'] # sub-directory names referring to thresholds
 L         = 5000 # number of loci
 N         = 1e3 # population size
-n         = 1e4 # gwa study size
+#n         = 1e4 # gwa study size
+n         = 1e5 # gwa study size
 
 # output directory
 outputdir = '../figures'
 
 # some global stuff
 va         = a / (2.*a + 1.) # additive genetic variance
-thresholds = [1000]
-dvals      = [int(d) for d in [1,10,100,1e3,5e3,1e4]]
+dvals      = [int(d) for d in [10,100,1e3,1e4,5e4,1e5]]
 
 #-------------------------------------------------------------------------------
 # input + output
@@ -103,7 +109,7 @@ else :
 
 #  plot
 if h2 :
-    axs[0] = plot_accuracies_a_b (axs=axs[0], h2=0.5, aval=1e-3, n=1e4, ds=dvals, times=np.arange(0, np.max(taus) / (2.*N), 0.01))
+    axs[0] = plot_accuracies_a_b (axs=axs[0], h2=0.5, aval=a, n=n, ds=dvals, times=np.arange(0, np.max(taus) / (2.*N), 0.01))
     axs[1] = plot_stat (axs[1], a, n, N, simDict, sigmaprime=[0,va], stat='rho2_trait', times=taus, error=False, nsim=nsim, ylabel=r'$\rho^2 (\tau)$ \& $r^2 (\tau)$', preambles=thresholds, h2=True, sampler2=True, makelegend=False)
     axins = inset_axes(axs[1], width="30%", height="30%", loc=2, borderpad=2.)
     axins = plot_stat (axins, a, n, N, simDict, stat='rho2_trait', sigmaprime=[0,va], relative=True, times=taus, error=False, nsim=nsim, ylabel=None,

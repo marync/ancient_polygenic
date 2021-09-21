@@ -9,7 +9,7 @@ class EqualTheory :
     def __init__(self, a, d, n, times, approx=False, d2=None) :
 
         # makes warnings exceptions
-        #np.seterr(all='raise')
+        np.seterr(all='raise')
 
         # set values
         self.a    = float(a)
