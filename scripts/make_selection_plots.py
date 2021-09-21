@@ -37,15 +37,13 @@ colors = ['#377eb8', '#ff7f00', '#4daf4a',
 
 #-------------------------------------------------------------------------------
 # to produce figure 3
-#inputdir  = '../data/heritability'
-inputdir = '../data/testingherit'
+inputdir  = '../data/heritability'
 preambles = ['d10000'] # sub-directory names referring to thresholds
 thresholds = [10000]
 h2        = True
 
 # to produce figure 4
-#inputdir  = '../data/selection'
-inputdir  = '../data/testing'
+inputdir  = '../data/selection'
 preambles = ['d1000','d10000'] # sub-directory names referring to thresholds
 thresholds = [1000,10000]
 h2        = False
