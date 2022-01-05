@@ -164,18 +164,13 @@ def plot_accuracies_a_b (axs, h2, aval, n, ds, times, fst=False) :
     return axs
 
 #-------------------------------------------------------------------------------
-def plot_relative_accuracy_data (obs_fst, obs_acc, axs, h2, aval, n, ds, times, fst=False) :
+def plot_relative_accuracy_data (obs_fst, obs_acc, pred_acc, pops, axs, h2, aval, n, ds, times, fst=False) :
     """
     Plots first part of Figure 3.
     """
 
     # for heritability
     sigmaprime = (aval / (2.*aval + 1.)) * ((1. - h2) / h2)
-    alphas = np.flip(np.linspace (0.9,1.0,len(ds)))
-
-    # for custom legends
-    custom_lines = []
-    custom_lines_ds = []
 
     if fst :
         xvals = compute_fst (a=aval, taus=times, normalize=True)
@@ -184,24 +179,25 @@ def plot_relative_accuracy_data (obs_fst, obs_acc, axs, h2, aval, n, ds, times, 
         xvals = cp.copy (times)
         axs.set_xlabel (r'ancient sampling time $\tau$')
 
-    for j in range (len(ds)) :
-        linestyle_d = list(linestyles.keys())[j]
-        theory = EqualTheory(a=aval, d=ds[j], n=n, times=times)
-        theory.process (sigmaprime=sigmaprime)
+    theory = EqualTheory(a=aval, d=ds, n=n, times=times)
+    theory.process (sigmaprime=sigmaprime)
 
-        axs.plot (xvals, theory.rho_tau / theory.rho_tau[0],
-                       color='dodgerblue', alpha=alphas[j], linestyle=linestyles[linestyle_d], lw=1)
+    axs.plot (xvals, theory.rho_tau / theory.rho_tau[0],
+              color='black', linestyle='--', lw=1)
 
-        custom_lines_ds.append (mpl.lines.Line2D([0], [0], color='black', alpha=alphas[j], lw=1, linestyle=linestyles[linestyle_d]))
 
     # add data
-    axs.scatter (obs_fst, obs_acc)
+    colors = ['darkorange','dodgerblue','maroon']
+    for i in range(len(pops)) :
+        axs.scatter (obs_fst[i], obs_acc[i], color=colors[i], marker='o', label=pops[i])
+        axs.scatter (obs_fst[i], pred_acc[i], color=colors[i], marker='x')
 
     axs.set_title (r'rel.\ accuracy')
     axs.set_ylabel (r'$\rho^2 (\tau) /\ \rho^2 (0)$')
 
-    formatted_ds = [sci_notation(di) for di in ds]
-    axs.legend (custom_lines_ds, formatted_ds, title=r'$d$', loc='lower right', bbox_to_anchor=(-0.15,0.5), frameon=False)
+    #formatted_ds = [sci_notation(di) for di in ds]
+    #axs.legend (custom_lines_ds, formatted_ds, title=r'$d$', loc='lower right', bbox_to_anchor=(-0.15,0.5), frameon=False)
+    axs.legend (frameon=False)
 
     return axs
 

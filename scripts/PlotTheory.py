@@ -73,9 +73,6 @@ class PlotTheory :
     def process (self, range_ds, focaln=1e4, focala=1e-3, vstar=None, showapprox=False) :
 
         # create dictionary for low values of d
-        #dellsLow = np.array([compute_d_ell (n=ni, vp=1, beta=0.575) for ni in self.ns])
-        #self.plot_vas_and_mses (n=1e4, ds=dellsLow, extrads=np.array([1,10,100,1000,5000,10000]), mutationrates=self.avals[1], approx=True)
-        #self.plot_vas_and_mses (n=1e4, ds=dellsLow, extrads=np.array([1,10,100,1000,5000,10000]), mutationrates=self.avals[1], approx=False)
         dellsLow = np.array([compute_d_ell (n=ni, vp=1, beta=0.1) for ni in self.ns])
         print ('ns: ' + str(self.ns))
         print ('ds: ' + str(dellsLow))
@@ -84,13 +81,6 @@ class PlotTheory :
         # figure 2 with x-axis as divergence time or Fst
         self.plot_vas_and_mses (n=focaln, ds=dellsLow, extrads=range_ds, mutationrates=focala, approx=showapprox)
         self.plot_vas_and_mses (n=focaln, ds=dellsLow, extrads=range_ds, mutationrates=focala, approx=showapprox, fst=True)
-
-        #self.plot_vas_and_mses (n=focaln, ds=dellsLow, extrads=range_ds, mutationrates=self.avals[1], approx=False)
-
-        # compute stats for a higher threshold
-        #dellsHigh = np.array([compute_d_ell (n=ni, vp=1, beta=.5) for ni in self.ns])
-        #print ('high ds: ' + str(dellsHigh))
-        #self.theoryDictHigh = self.create_theory_dictionary (ds=dellsHigh)
 
 
     def make_dense_plots (self, denseas, densens, lowbeta, highbeta) :

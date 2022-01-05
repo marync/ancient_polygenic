@@ -12,7 +12,7 @@ import collections
 # my code
 from EqualTheory import *
 #from Ancient import *
-from plot_simulations_helper import plot_stat, plot_accuracies_a_b, compute_fst
+from plot_simulations_helper import plot_stat, plot_accuracies_a_b, plot_relative_accuracy_data, compute_fst
 
 #-------------------------------------------------------------------------------
 # plotting parameters
@@ -41,13 +41,21 @@ inputdir  = '../data/heritability'
 preambles = ['d10000'] # sub-directory names referring to thresholds
 thresholds = [10000]
 h2        = True
-fst       = True
+#fst       = True
+fst       = False
 
 # to produce figure 4
-#inputdir  = '../data/selection'
-#preambles = ['d1000','d10000'] # sub-directory names referring to thresholds
-#thresholds = [1000,10000]
-#h2        = False
+inputdir  = '../data/selection'
+preambles = ['d1000','d10000'] # sub-directory names referring to thresholds
+thresholds = [1000,10000]
+h2        = False
+fst       = False
+
+# to produce figure SX
+obsFst  = np.array ([0.0234,0.1046,0.1360])
+obsRA   = np.array ([53.9,39,15.3]) / 100.
+predRA  = np.array ([89.1,76.7,39.4]) / 100.
+popLabs = ['sas','eas','afr']
 
 # shared parameters
 a         = 1e-3 # population scaled mut. rate
@@ -98,6 +106,19 @@ for i in range(len(dirs)) :
 
 #-------------------------------------------------------------------------------
 #  set up plots + output to pdf
+fig, axs = plt.subplots ( 1, 1, figsize=(6,5), sharex=True, sharey=False)
+figname  = 'comparison'
+# plot
+axs = plot_relative_accuracy_data (obs_fst=obsFst, obs_acc=obsRA, pred_acc=predRA, pops=popLabs,
+                                   axs=axs, h2=0.5, aval=a, n=n, ds=1e3,
+                                   times=np.arange(0, np.max(taus) / (2.*N), 0.01), fst=fst)
+
+# save figure
+plt.savefig(os.path.join (outputdir, figname + '.pdf'), bbox_inches='tight')
+plt.close ()
+
+
+
 
 if h2 :
     fig, axs = plt.subplots ( 1, 2, figsize=(12,5), sharex=True, sharey=False)
