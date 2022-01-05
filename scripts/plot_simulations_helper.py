@@ -115,7 +115,7 @@ markers = ['o','x','v']
 colors  = ['dodgerblue', 'mediumturquoise', 'gold', 'darkorange']
 
 #-------------------------------------------------------------------------------
-def plot_accuracies_a_b (axs, h2, aval, n, ds, times) :
+def plot_accuracies_a_b (axs, h2, aval, n, ds, times, fst=False) :
     """
     Plots first part of Figure 3.
     """
@@ -131,23 +131,30 @@ def plot_accuracies_a_b (axs, h2, aval, n, ds, times) :
     custom_lines = []
     custom_lines_ds = []
 
+    if fst :
+        xvals = compute_fst (a=aval, taus=times, normalize=True)
+        axs.set_xlabel (r'$F_{ST}$')
+    else :
+        xvals = cp.copy (times)
+        axs.set_xlabel (r'ancient sampling time $\tau$')
+
     for j in range (len(ds)) :
         linestyle_d = list(linestyles.keys())[j]
         theory = EqualTheory(a=aval, d=ds[j], n=n, times=times)
         theory.process (sigmaprime=sigmaprime)
 
-        axs.plot (times, theory.rho_tau,
+        #axs.plot (times, theory.rho_tau,
+        axs.plot (xvals, theory.rho_tau,
                        color='dodgerblue', alpha=alphas[j], linestyle=linestyles[linestyle_d], lw=1)
-        axins.plot (times, theory.rho_tau / theory.rho_tau[0],
+        #axins.plot (times, theory.rho_tau / theory.rho_tau[0],
+        axins.plot (xvals, theory.rho_tau / theory.rho_tau[0],
                        color='dodgerblue', alpha=alphas[j], linestyle=linestyles[linestyle_d], lw=1)
 
         custom_lines_ds.append (mpl.lines.Line2D([0], [0], color='black', alpha=alphas[j], lw=1, linestyle=linestyles[linestyle_d]))
 
     axs.set_title (r'(a) accuracy, varying $d$')
     axins.set_title (r'rel.\ accuracy')
-
     axs.set_ylabel (r'$\rho^2 (\tau)$')
-    axs.set_xlabel (r'ancient sampling time $\tau$')
 
     axins.invert_xaxis ()
     axins.locator_params (axis="y", nbins=2)
@@ -156,9 +163,50 @@ def plot_accuracies_a_b (axs, h2, aval, n, ds, times) :
 
     return axs
 
+#-------------------------------------------------------------------------------
+def plot_relative_accuracy_data (obs_fst, obs_acc, axs, h2, aval, n, ds, times, fst=False) :
+    """
+    Plots first part of Figure 3.
+    """
+
+    # for heritability
+    sigmaprime = (aval / (2.*aval + 1.)) * ((1. - h2) / h2)
+    alphas = np.flip(np.linspace (0.9,1.0,len(ds)))
+
+    # for custom legends
+    custom_lines = []
+    custom_lines_ds = []
+
+    if fst :
+        xvals = compute_fst (a=aval, taus=times, normalize=True)
+        axs.set_xlabel (r'$F_{ST}$')
+    else :
+        xvals = cp.copy (times)
+        axs.set_xlabel (r'ancient sampling time $\tau$')
+
+    for j in range (len(ds)) :
+        linestyle_d = list(linestyles.keys())[j]
+        theory = EqualTheory(a=aval, d=ds[j], n=n, times=times)
+        theory.process (sigmaprime=sigmaprime)
+
+        axs.plot (xvals, theory.rho_tau / theory.rho_tau[0],
+                       color='dodgerblue', alpha=alphas[j], linestyle=linestyles[linestyle_d], lw=1)
+
+        custom_lines_ds.append (mpl.lines.Line2D([0], [0], color='black', alpha=alphas[j], lw=1, linestyle=linestyles[linestyle_d]))
+
+    # add data
+    axs.scatter (obs_fst, obs_acc)
+
+    axs.set_title (r'rel.\ accuracy')
+    axs.set_ylabel (r'$\rho^2 (\tau) /\ \rho^2 (0)$')
+
+    formatted_ds = [sci_notation(di) for di in ds]
+    axs.legend (custom_lines_ds, formatted_ds, title=r'$d$', loc='lower right', bbox_to_anchor=(-0.15,0.5), frameon=False)
+
+    return axs
 
 
-def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=False, sigmaprime=[0], onset=None, sampler2=False, nsim=None, va=None, relative=False, ylabel=None, xlabel=True, makelegend=False, error=True, jitter=0) :
+def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=False, sigmaprime=[0], onset=None, sampler2=False, nsim=None, va=None, relative=False, ylabel=None, xlabel=True, makelegend=False, error=True, jitter=0, fst=False) :
     """
     Plots either selection (figure 4) or (b) of figure 3.
     """
@@ -191,6 +239,13 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
     theorytimes  = np.arange (0, np.max(times)+1, 1) / (2.*N)
     theorytimes += (len(allselection)*0.5*jitter / (2.*N))
 
+    if fst :
+        xvals = compute_fst (a=a, taus=theorytimes, normalize=True)
+        ax.set_xlabel (r'$F_{ST}$')
+    else :
+        xvals = cp.copy (theorytimes)
+        ax.set_xlabel (r'ancient sampling time $\tau$')
+
     threshold_counter = 0
     for threshold in results_dictionary[testkey].keys() :
 
@@ -211,10 +266,12 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
             # theory times in middle
             if va is not None :
                 #ax.plot (theorytimes, theory / va, color=colors[sigma_counter], linestyle=linestyles[linestylelist[2+threshold_counter]], lw=0.6) 
-                ax.plot (theorytimes, theory / va, color=colors[sigma_counter], linestyle=linestyles[threshold], lw=0.6) 
+                #ax.plot (theorytimes, theory / va, color=colors[sigma_counter], linestyle=linestyles[threshold], lw=0.6) 
+                ax.plot (xvals, theory / va, color=colors[sigma_counter], linestyle=linestyles[threshold], lw=0.6) 
             else :
                 #ax.plot (theorytimes, theory, color=colors[sigma_counter], linestyle=linestyles[linestylelist[2+threshold_counter]], lw=0.6)
-                ax.plot (theorytimes, theory, color=colors[sigma_counter], linestyle=linestyles[threshold], lw=0.6)
+                #ax.plot (theorytimes, theory, color=colors[sigma_counter], linestyle=linestyles[threshold], lw=0.6)
+                ax.plot (xvals, theory, color=colors[sigma_counter], linestyle=linestyles[threshold], lw=0.6)
 
             sigma_counter += 1
 
@@ -223,7 +280,11 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
 
             print('selection coeff: ' + str(selectioncoeff) + ', counter: ' + str(selection_counter))
             X = cp.deepcopy( results_dictionary[selectioncoeff][threshold][stat] )
-            times_sel = (times + selection_counter*jitter)
+            times_jitter = (times + selection_counter*jitter) / (2*N)
+            if fst :
+                times_sel  = compute_fst (a=a, taus=times_jitter, normalize=True)
+            else :
+                times_sel = cp.copy (times_jitter)
 
             if stat == 'rho2_trait' :
                 X *= (99 / 100)
@@ -231,21 +292,21 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
             #times_sel = times
 
             if relative :
-                ax.scatter ( times_sel / (2*N), X / X[0], color=colors[selection_counter], marker=markers[threshold_counter], alpha=0.7, s=15)
+                ax.scatter ( times_sel, X / X[0], color=colors[selection_counter], marker=markers[threshold_counter], alpha=0.7, s=15)
                           #  label='d=' + str(thresholds[k]) + ', s=' + str(selection[i]) )
             elif va is not None :
-                ax.scatter ( times_sel / (2*N), X / va, color=colors[selection_counter], marker=markers[threshold_counter], alpha=0.7, s=15)
+                ax.scatter ( times_sel, X / va, color=colors[selection_counter], marker=markers[threshold_counter], alpha=0.7, s=15)
 
             else :
-                ax.scatter ( times_sel / (2*N), X, color=colors[selection_counter], marker=markers[threshold_counter], alpha=0.7, s=15)
+                ax.scatter ( times_sel, X, color=colors[selection_counter], marker=markers[threshold_counter], alpha=0.7, s=15)
 
             if error :
                 V = cp.deepcopy( results_dictionary[selectioncoeff][threshold]['s_' + stat] ) / nsim
                 if va is not None :
-                    ax.errorbar( (times_sel) / (2*N), X / va,
+                    ax.errorbar( times_sel, X / va,
                                  yerr=1.96*np.sqrt(V / (va**2) ), color=colors[selection_counter], linestyle='None', lw=0.5)#lw=0.5)
                 else :
-                    ax.errorbar( (times_sel) / (2*N), X,
+                    ax.errorbar( times_sel, X,
                                   yerr=1.96*np.sqrt(V), color=colors[selection_counter], linestyle='None', lw=0.5) #lw=0.5)
 
             if stat == 'rho2_trait' and sampler2 :
@@ -253,12 +314,12 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
                 R2 = cp.deepcopy( results_dictionary[selectioncoeff][threshold]['r2'] )
                 VR2 = cp.deepcopy( results_dictionary[selectioncoeff][threshold]['s_r2'] ) / nsim
                 if relative :
-                    ax.scatter ( (times_sel) / (2*N), R2 / R2[0], color=colors[selection_counter], marker='x', alpha=0.8, s=15)
-                    ax.errorbar( (times_sel) / (2*N), R2 / R2[0],
+                    ax.scatter ( times_sel, R2 / R2[0], color=colors[selection_counter], marker='x', alpha=0.8, s=15)
+                    ax.errorbar( times_sel, R2 / R2[0],
                                   yerr=1.96*np.sqrt(VR2), color=colors[selection_counter], linestyle='None', lw=0.5)
                 else :
-                    ax.scatter ( (times_sel) / (2*N), R2, color=colors[selection_counter], marker='x', alpha=0.8, s=15)
-                    ax.errorbar( (times_sel) / (2*N), R2,
+                    ax.scatter ( times_sel, R2, color=colors[selection_counter], marker='x', alpha=0.8, s=15)
+                    ax.errorbar( times_sel, R2,
                                   yerr=1.96*np.sqrt(VR2), color=colors[selection_counter], linestyle='None', lw=0.5)
 
             selection_counter += 1
@@ -271,7 +332,10 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
         ax.set_ylabel (ylabel)
 
     if xlabel :
-        ax.set_xlabel (r'ancient sampling time $\tau$')
+        if fst :
+            ax.set_xlabel (r'$F_{ST}$')
+        else :
+            ax.set_xlabel (r'ancient sampling time $\tau$')
 
     if makelegend :
         handles_d = []
