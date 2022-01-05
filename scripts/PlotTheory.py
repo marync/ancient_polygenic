@@ -11,7 +11,7 @@ import pandas as pd
 
 # my code
 from EqualTheory import EqualTheory
-from plot_simulations_helper import sci_notation, compute_d_ell
+from plot_simulations_helper import sci_notation, compute_d_ell, compute_fst
 
 #-------------------------------------------------------------------------------
 # plotting parameters
@@ -80,7 +80,11 @@ class PlotTheory :
         print ('ns: ' + str(self.ns))
         print ('ds: ' + str(dellsLow))
         self.theoryDictLow = self.create_theory_dictionary (ds=dellsLow)
+
+        # figure 2 with x-axis as divergence time or Fst
         self.plot_vas_and_mses (n=focaln, ds=dellsLow, extrads=range_ds, mutationrates=focala, approx=showapprox)
+        self.plot_vas_and_mses (n=focaln, ds=dellsLow, extrads=range_ds, mutationrates=focala, approx=showapprox, fst=True)
+
         #self.plot_vas_and_mses (n=focaln, ds=dellsLow, extrads=range_ds, mutationrates=self.avals[1], approx=False)
 
         # compute stats for a higher threshold
@@ -213,7 +217,7 @@ class PlotTheory :
         return pcm
 
 
-    def plot_vas_and_mses (self, n, ds, extrads, mutationrates=None, approx=False) :
+    def plot_vas_and_mses (self, n, ds, extrads, mutationrates=None, approx=False, fst=False) :
         """
         Plot the six plot figure for mse and eva.
         """
@@ -223,6 +227,8 @@ class PlotTheory :
         else :
             outname = 'figure_2'
 
+        if fst :
+            outname = outname + '_fst'
 
         if mutationrates is None :
             mutationrates = cp.deepcopy(self.avals)
@@ -233,13 +239,19 @@ class PlotTheory :
         fig, axs = plt.subplots (2, 3, figsize=(13, 7), sharey=False, sharex=True)
         plt.ticklabel_format (axis='both', style='sci')
 
-        axs = self.plot_increase_and_normalized (axs=axs, colors=colors, alphas=alphas, mutationrates=np.array([mutationrates]),approx=approx)
-        axs[:,2], lines_d = self.plot_varying_ds (axs=axs[:,2], n=n, extrads=extrads, colors=colors, mutationrates=np.array([mutationrates]), approx=approx)
+        #axs = self.plot_increase_and_normalized (axs=axs, colors=colors, alphas=alphas, mutationrates=np.array([mutationrates]),approx=approx)
+        axs = self.plot_increase_and_normalized (axs=axs, colors=colors, alphas=alphas, mutationrates=np.array([mutationrates]),approx=approx, fst=fst)
+        #axs[:,2], lines_d = self.plot_varying_ds (axs=axs[:,2], n=n, extrads=extrads, colors=colors, mutationrates=np.array([mutationrates]), approx=approx)
+        axs[:,2], lines_d = self.plot_varying_ds (axs=axs[:,2], n=n, extrads=extrads, colors=colors, mutationrates=np.array([mutationrates]), approx=approx, fst=fst)
 
-        # invert x-axis
+        # invert x-axis and set labels
         axs[0,0].invert_xaxis ()
+        #axs[1,0].set_xlabel (r'ancient sampling time $\tau$')
         for i in range(3) :
-            axs[1,i].set_xlabel (r'ancient sampling time $\tau$')
+            if fst :
+                axs[1,i].set_xlabel (r'$F_{ST}$')
+            else :
+                axs[1,i].set_xlabel (r'ancient sampling time $\tau$')
 
         lines_mutation = []
         for i in range(len(self.avals)) :
@@ -273,7 +285,7 @@ class PlotTheory :
         plt.close()
 
 
-    def plot_varying_ds (self, axs, n, extrads, colors, mutationrates=None, approx=False) :
+    def plot_varying_ds (self, axs, n, extrads, colors, mutationrates=None, approx=False, fst=False) :
         """
         Make panels c and f of figure 2.
         """
@@ -289,19 +301,34 @@ class PlotTheory :
             colori = colors[i]
 
             if ai in mutationrates :
+                if fst :
+                    xvals = compute_fst (a=ai, taus=self.taus, normalize=True)
+                else :
+                    xvals = cp.copy (self.taus)
+
                 for j in range (len(extrads)) :
                     theory = EqualTheory(a=ai, d=extrads[j], n=n, times=self.taus)
                     theory.process ()
 
-                    axs[0].plot (self.taus, theory.mse / (ai / (2.*ai + 1.)), color=colori, label=extrads[j],
+                    #axs[0].plot (self.taus, theory.mse / (ai / (2.*ai + 1.)), color=colori, label=extrads[j],
+                    #             linestyle=self.linestyles[list(self.linestyles.keys())[j]], lw=1)
+                    #axs[1].plot (self.taus, theory.eva / (ai / (2.*ai + 1.)), color=colori, label=extrads[j],
+                    #             linestyle=self.linestyles[list(self.linestyles.keys())[j]], lw=1)
+
+                    axs[0].plot (xvals, theory.mse / (ai / (2.*ai + 1.)), color=colori, label=extrads[j],
                                  linestyle=self.linestyles[list(self.linestyles.keys())[j]], lw=1)
-                    axs[1].plot (self.taus, theory.eva / (ai / (2.*ai + 1.)), color=colori, label=extrads[j],
+                    axs[1].plot (xvals, theory.eva / (ai / (2.*ai + 1.)), color=colori, label=extrads[j],
                                  linestyle=self.linestyles[list(self.linestyles.keys())[j]], lw=1)
 
                     if approx :
-                        axs[0].plot (self.taus, theory.mseapprox / (ai / (2.*ai + 1.)), color='black', alpha=0.6, label=extrads[j],
+                        #axs[0].plot (self.taus, theory.mseapprox / (ai / (2.*ai + 1.)), color='black', alpha=0.6, label=extrads[j],
+                        #             linestyle=self.linestyles[list(self.linestyles.keys())[j]], lw=1)
+                        #axs[1].plot (self.taus, theory.evaapprox / (ai / (2.*ai + 1.)), color='black', alpha=0.6, label=extrads[j],
+                        #             linestyle=self.linestyles[list(self.linestyles.keys())[j]], lw=1)
+
+                        axs[0].plot (xvals, theory.mseapprox / (ai / (2.*ai + 1.)), color='black', alpha=0.6, label=extrads[j],
                                      linestyle=self.linestyles[list(self.linestyles.keys())[j]], lw=1)
-                        axs[1].plot (self.taus, theory.evaapprox / (ai / (2.*ai + 1.)), color='black', alpha=0.6, label=extrads[j],
+                        axs[1].plot (xvals, theory.evaapprox / (ai / (2.*ai + 1.)), color='black', alpha=0.6, label=extrads[j],
                                      linestyle=self.linestyles[list(self.linestyles.keys())[j]], lw=1)
 
                     if leg_counter < len(extrads) :
@@ -318,7 +345,7 @@ class PlotTheory :
         return axs, lines_d
 
 
-    def plot_increase_and_normalized (self, axs, colors, alphas, mutationrates=None, approx=False) :
+    def plot_increase_and_normalized (self, axs, colors, alphas, mutationrates=None, approx=False, fst=False) :
         """
         Plot panels a and e of figure 2.
         """
@@ -330,6 +357,11 @@ class PlotTheory :
             colori = colors[i]
             ai     = self.avals[i]
             trueva = ai / (2.*ai + 1.)
+            
+            if fst :
+                xvals = compute_fst (a=ai, taus=self.taus, normalize=True)
+            else :
+                xvals = cp.copy (self.taus)
 
             for j in range(len(self.ns)) :
                 alphaj = alphas[j]
@@ -338,28 +370,36 @@ class PlotTheory :
                 slicej = slice (j*50, len(self.taus), 150)
 
                 # mse increase
-                axs[0,0].plot (self.taus, np.abs(theoryij.mse-theoryij.mse[0]), markevery=slicej, marker=self.markers[j], c=colori, alpha=alphaj, label=nj)
+                #axs[0,0].plot (self.taus, np.abs(theoryij.mse-theoryij.mse[0]), markevery=slicej, marker=self.markers[j], c=colori, alpha=alphaj, label=nj)
+                axs[0,0].plot (xvals, np.abs(theoryij.mse-theoryij.mse[0]), markevery=slicej, marker=self.markers[j], c=colori, alpha=alphaj, label=nj)
                 axs[0,0].set_ylabel (r'$\Delta mse_{\ell} (\tau)$') 
                 # eva increase
-                axs[1,0].plot (self.taus, np.abs(theoryij.eva-theoryij.eva[0]), markevery=slicej, marker=self.markers[j], c=colori, alpha=alphaj, label=nj)
+                #axs[1,0].plot (self.taus, np.abs(theoryij.eva-theoryij.eva[0]), markevery=slicej, marker=self.markers[j], c=colori, alpha=alphaj, label=nj)
+                axs[1,0].plot (xvals, np.abs(theoryij.eva-theoryij.eva[0]), markevery=slicej, marker=self.markers[j], c=colori, alpha=alphaj, label=nj)
                 axs[1,0].set_ylabel (r'$|\Delta \hat V_{A\ell} (\tau)|$') 
 
                 if approx :
-                    axs[0,0].plot (self.taus, np.abs(theoryij.mseapprox-theoryij.mseapprox[0]), c=colori, alpha=alphaj, markevery=slicej, marker=self.markers[j], linestyle=':')
-                    axs[1,0].plot (self.taus, np.abs(theoryij.evaapprox-theoryij.evaapprox[0]), c=colori, alpha=alphaj, markevery=slicej, marker=self.markers[j], linestyle=':')
+                    #axs[0,0].plot (self.taus, np.abs(theoryij.mseapprox-theoryij.mseapprox[0]), c=colori, alpha=alphaj, markevery=slicej, marker=self.markers[j], linestyle=':')
+                    axs[0,0].plot (xvals, np.abs(theoryij.mseapprox-theoryij.mseapprox[0]), c=colori, alpha=alphaj, markevery=slicej, marker=self.markers[j], linestyle=':')
+                    #axs[1,0].plot (self.taus, np.abs(theoryij.evaapprox-theoryij.evaapprox[0]), c=colori, alpha=alphaj, markevery=slicej, marker=self.markers[j], linestyle=':')
+                    axs[1,0].plot (xvals, np.abs(theoryij.evaapprox-theoryij.evaapprox[0]), c=colori, alpha=alphaj, markevery=slicej, marker=self.markers[j], linestyle=':')
 
 
                 if ai in mutationrates :
                     # plot normalized mse
-                    axs[0,1].plot (self.taus, theoryij.mse / trueva, c=colori, markevery=slicej, marker=self.markers[j], alpha=alphaj, label=nj)
+                    #axs[0,1].plot (self.taus, theoryij.mse / trueva, c=colori, markevery=slicej, marker=self.markers[j], alpha=alphaj, label=nj)
+                    axs[0,1].plot (xvals, theoryij.mse / trueva, c=colori, markevery=slicej, marker=self.markers[j], alpha=alphaj, label=nj)
                     axs[0,1].set_ylabel (r'$mse_{\ell} (\tau) \//  V_{A\ell} $') 
                     # plot normalized eva
-                    axs[1,1].plot(self.taus, theoryij.eva / trueva, c=colori, markevery=slicej, marker=self.markers[j], alpha=alphaj, label=nj)
+                    #axs[1,1].plot(self.taus, theoryij.eva / trueva, c=colori, markevery=slicej, marker=self.markers[j], alpha=alphaj, label=nj)
+                    axs[1,1].plot(xvals, theoryij.eva / trueva, c=colori, markevery=slicej, marker=self.markers[j], alpha=alphaj, label=nj)
                     axs[1,1].set_ylabel (r'$\hat V_{A\ell} (\tau) \//  V_{A\ell} $') 
 
                     if approx :
-                        axs[0,1].plot (self.taus, theoryij.mseapprox / trueva, c='black', alpha=alphaj, markevery=slicej, marker=self.markers[j], lw=1)
-                        axs[1,1].plot(self.taus, theoryij.evaapprox / trueva, c='black', alpha=alphaj, markevery=slicej, marker=self.markers[j], lw=1)
+                        #axs[0,1].plot (self.taus, theoryij.mseapprox / trueva, c='black', alpha=alphaj, markevery=slicej, marker=self.markers[j], lw=1)
+                        #axs[1,1].plot(self.taus, theoryij.evaapprox / trueva, c='black', alpha=alphaj, markevery=slicej, marker=self.markers[j], lw=1)
+                        axs[0,1].plot (xvals, theoryij.mseapprox / trueva, c='black', alpha=alphaj, markevery=slicej, marker=self.markers[j], lw=1)
+                        axs[1,1].plot(xvals, theoryij.evaapprox / trueva, c='black', alpha=alphaj, markevery=slicej, marker=self.markers[j], lw=1)
 
         # plot titles
         axs[0,0].set_title (r'(a) change in $mse_\ell (\tau)$')
