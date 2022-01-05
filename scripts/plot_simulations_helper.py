@@ -50,6 +50,29 @@ def compute_d_ell (n, alpha=1e-8, vp=2, beta=1, vstar=None) :
     return gammab
 
 
+def compute_fst (a, taus, normalize=False) :
+    """
+    Computes Fst given a population-scaled mutation rate and sampling / divergence time.
+    (Either normalized or not.)
+    """
+
+    # compute numerator
+    num  = ( (a+1.) / (4.*(2.*a+1.)) )
+    num -= ( 1./8. )
+    num -= ( 1./ (8.*(2.*a+1.)) ) * np.exp (-a*taus)
+
+    if normalize :
+        denom = 0.5 - (((a+1.)/(4.*(2.*a+1.))))
+        denom -= (1./8.)
+        denom -= (1./8.) * (1. / (2.*a+1.)) * np.exp (-a*taus)
+        fst = num / denom
+
+    else :
+        fst = num
+
+    return fst
+
+
 #-------------------------------------------------------------------------------
 # plotting parameters
 
