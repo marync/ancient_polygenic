@@ -12,7 +12,7 @@ import collections
 # my code
 from EqualTheory import *
 #from Ancient import *
-from plot_simulations_helper import plot_stat, plot_accuracies_a_b
+from plot_simulations_helper import plot_stat, plot_accuracies_a_b, compute_fst
 
 #-------------------------------------------------------------------------------
 # plotting parameters
@@ -41,12 +41,13 @@ inputdir  = '../data/heritability'
 preambles = ['d10000'] # sub-directory names referring to thresholds
 thresholds = [10000]
 h2        = True
+fst       = True
 
 # to produce figure 4
-inputdir  = '../data/selection'
-preambles = ['d1000','d10000'] # sub-directory names referring to thresholds
-thresholds = [1000,10000]
-h2        = False
+#inputdir  = '../data/selection'
+#preambles = ['d1000','d10000'] # sub-directory names referring to thresholds
+#thresholds = [1000,10000]
+#h2        = False
 
 # shared parameters
 a         = 1e-3 # population scaled mut. rate
@@ -101,17 +102,26 @@ for i in range(len(dirs)) :
 if h2 :
     fig, axs = plt.subplots ( 1, 2, figsize=(12,5), sharex=True, sharey=False)
     figname  = 'figure3'
+    if fst :
+        figname = figname + '_fst'
 else :
     fig, axs = plt.subplots ( 2, 2, figsize=(10,8), sharex=True, sharey=False)
     figname  = 'figure4'
+    if fst :
+        figname = figname + '_fst'
 
 #  plot
 if h2 :
-    axs[0] = plot_accuracies_a_b (axs=axs[0], h2=0.5, aval=a, n=n, ds=dvals, times=np.arange(0, np.max(taus) / (2.*N), 0.01))
-    axs[1] = plot_stat (axs[1], a, n, N, simDict, sigmaprime=[0,va], stat='rho2_trait', times=taus, error=False, nsim=nsim, ylabel=r'$\rho^2 (\tau)$ \& $r^2 (\tau)$', preambles=thresholds, h2=True, sampler2=True, makelegend=False)
+    axs[0] = plot_accuracies_a_b (axs=axs[0], h2=0.5, aval=a, n=n, ds=dvals,
+                                  times=np.arange(0, np.max(taus) / (2.*N), 0.01), fst=fst)
+    axs[1] = plot_stat (axs[1], a, n, N, simDict, sigmaprime=[0,va], stat='rho2_trait',
+                        times=taus, error=False, nsim=nsim,
+                        ylabel=r'$\rho^2 (\tau)$ \& $r^2 (\tau)$', preambles=thresholds,
+                        h2=True, sampler2=True, makelegend=False, fst=fst)
     axins = inset_axes(axs[1], width="30%", height="30%", loc=2, borderpad=2.)
-    axins = plot_stat (axins, a, n, N, simDict, stat='rho2_trait', sigmaprime=[0,va], relative=True, times=taus, error=False, nsim=nsim, ylabel=None,
-            preambles=thresholds, h2=True, sampler2=True)
+    axins = plot_stat (axins, a, n, N, simDict, stat='rho2_trait',
+                       sigmaprime=[0,va], relative=True, times=taus, error=False, nsim=nsim, ylabel=None,
+            preambles=thresholds, h2=True, sampler2=True, fst=fst)
 
     axins.locator_params (axis="y", nbins=2)
     axins.invert_xaxis ()
