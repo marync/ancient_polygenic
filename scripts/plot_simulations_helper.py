@@ -164,7 +164,7 @@ def plot_accuracies_a_b (axs, h2, aval, n, ds, times, fst=False) :
     return axs
 
 #-------------------------------------------------------------------------------
-def plot_relative_accuracy_data (obs_fst, obs_acc, pred_acc, pops, axs, h2, aval, n, ds, times, fst=False) :
+def plot_relative_accuracy_data (obs_fst, obs_acc, obs_acc_se, pred_acc, pops, axs, h2, aval, n, ds, times, fst=False) :
     """
     Plots first part of Figure 3.
     """
@@ -174,7 +174,7 @@ def plot_relative_accuracy_data (obs_fst, obs_acc, pred_acc, pops, axs, h2, aval
 
     if fst :
         xvals = compute_fst (a=aval, taus=times, normalize=True)
-        axs.set_xlabel (r'$F_{ST}$')
+        axs.set_xlabel (r'$F_{ST}$ with eur')
     else :
         xvals = cp.copy (times)
         axs.set_xlabel (r'ancient sampling time $\tau$')
@@ -183,21 +183,27 @@ def plot_relative_accuracy_data (obs_fst, obs_acc, pred_acc, pops, axs, h2, aval
     theory.process (sigmaprime=sigmaprime)
 
     axs.plot (xvals, theory.rho_tau / theory.rho_tau[0],
-              color='black', linestyle='--', lw=1)
+              color='black', linestyle='--', lw=1, label='neutral \n theory')
 
 
     # add data
     colors = ['darkorange','dodgerblue','maroon']
-    for i in range(len(pops)) :
-        axs.scatter (obs_fst[i], obs_acc[i], color=colors[i], marker='o', label=pops[i])
-        axs.scatter (obs_fst[i], pred_acc[i], color=colors[i], marker='x')
+    for i in range(len(obs_acc)) :
+        j = ( (i+1) % 3) - 1
+        axs.scatter (obs_fst[j], obs_acc[i], color=colors[j], marker='o', label=pops[j] + ' obs')
+        axs.errorbar( obs_fst[i], obs_acc[i],
+                      yerr=1.96*obs_acc_se[i], color=colors[i], linestyle='None', lw=0.5)#lw=0.5)
+        axs.scatter (obs_fst[j], pred_acc[i], color=colors[j], marker='x', label=pops[j] + ' pred')
 
-    axs.set_title (r'rel.\ accuracy')
+    axs.set_title (r'rel.\ accuracy for height')
     axs.set_ylabel (r'$\rho^2 (\tau) /\ \rho^2 (0)$')
+    axs.invert_xaxis ()
+    axs.set_ylim (0,1.05)
+
 
     #formatted_ds = [sci_notation(di) for di in ds]
     #axs.legend (custom_lines_ds, formatted_ds, title=r'$d$', loc='lower right', bbox_to_anchor=(-0.15,0.5), frameon=False)
-    axs.legend (frameon=False)
+    axs.legend (frameon=False, fontsize='x-small')
 
     return axs
 
@@ -274,7 +280,7 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
         selection_counter = 0
         for selectioncoeff in allselection :
 
-            print('selection coeff: ' + str(selectioncoeff) + ', counter: ' + str(selection_counter))
+            #print('selection coeff: ' + str(selectioncoeff) + ', counter: ' + str(selection_counter))
             X = cp.deepcopy( results_dictionary[selectioncoeff][threshold][stat] )
             times_jitter = (times + selection_counter*jitter) / (2*N)
             if fst :
