@@ -6,9 +6,12 @@ Code used to create the figures and conduct the simulations in Carlson et al. "P
 1. The **scripts** directory contains the following files:
     - *EqualTheory.py*: Computes all of the quantities derived in the text.
     - *PlotTheory.py*: Class called by the plotting scripts to produce plots containing theoretical results.
-    - *make_selection_plots.py*: Takes input from the *data* directory to make Figures 3 and 4
-    in the main text.
+    - *make_selection_plots.py*: Takes input from the *data* directory to make Figures 3, 4
+    and S7 in the main (first two) and supplementary (third) texts.
     - *make_theory_plots.py*: Makes all other figures, or those only containing theoretical results.
+    - *ukbiobank.py*: Makes the two figures in Supplementary Information S1.8 on the UK
+    Biobank summary statistics.
+        - Requires download of 'body height' data from the Price lab's site: https://alkesgroup.broadinstitute.org/UKBB.
     - *plot_simulations_helper.py*: Has a few functions that are used in plotting.
 2. The **data** directory contains the following sub-directories:
     - *heritability*: Contains the simulation results for two values of heritability and
