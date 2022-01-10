@@ -75,8 +75,8 @@ betaMidPoints = ( (betaDensity[1][:-1] + betaDensity[1][1:]) / 2 )
 afs = np.linspace (1e-3, 0.5, 1000)
 minimum_betas = np.zeros (len(afs)-1)
 for i in range (0, len(afs)-1) :
-    if i % 100 == 0 :
-        print (i)
+    #if i % 100 == 0 :
+    #    print (i)
 
     indices = np.where ( (signif_afs >= afs[i]) & (signif_afs < afs[i+1]))
     minimum_betas[i] = np.min ( np.array(np.abs(signif_betas))[np.array(indices[0])] )
@@ -91,8 +91,6 @@ f2 = scipy.interpolate.interp1d (afs[:-1], minimum_betas, kind='linear')
 
 # now find the minimum allele frequency for each beta
 minaf = [np.min(xnew[np.where (f2(xnew) - beta < 0)]) for beta in betaMidPoints]
-
-print ('after min af')
 
 ## Find theoretical expectations for statistics
 
@@ -145,8 +143,6 @@ theory_mean.process ()
 # true and estimated va
 uk_truevamean = (meanbeta**2) * (aval / (2.*aval + 1.))
 uk_meanva     = (meanbeta**2) * theory_mean.eva
-
-print ('finished analysis')
 
 # plots
 #-------------------------------------------------------------------------------
