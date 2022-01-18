@@ -19,6 +19,26 @@ import copy as cp
 from EqualTheory import *
 from plot_simulations_helper import compute_d_ell
 
+# Functions
+#-------------------------------------------------------------------------------
+def find_threshold (beta, af_function, xvals) :
+    """
+    Takes an effect size (beta) and function relating effect size to minimum
+    allele frequency (af_function) defined over some set of beta values (xvals).
+    Returns the minimum allele frequency associated with each value of beta.
+
+    Note that if the site can not be detected as significant, the function
+    returns a value of one.
+    """
+
+    if beta < np.min (af_function (xvals)) :
+        minaf = 1.0
+    else :
+        minaf = np.min (xnew[np.where (af_function (xvals) - beta < 0)])
+
+    return minaf
+
+
 # Data
 #-------------------------------------------------------------------------------
 # Download 'body_HEIGHTz.sumstats.gz' and unzip
@@ -73,13 +93,33 @@ betaMidPoints = ( (betaDensity[1][:-1] + betaDensity[1][1:]) / 2 )
 
 # Now, we want to find the minimum af needed to detect an effect of the sizes given above
 afs = np.linspace (1e-3, 0.5, 1000)
-minimum_betas = np.zeros (len(afs)-1)
+
+# create dictionary of effect estimates indexed by allele frequency range (rounded)
+thresholdDict = collections.OrderedDict ()
+roundedafs    = np.round (afs, 4)
 for i in range (0, len(afs)-1) :
+    thresholdDict[(roundedafs[i], roundedafs[i+1])] = list ()
+
+# iterate through allele frequencies
+for i in range (0, len (stringentafs)) :
+    diff  = stringent_afs[i] - afs
+    left  = np.round (np.where (diff == np.min (diff[np.where (diff > 0)] ))[0], 4)[0]
+    right = np.round (np.where (diff == np.max (diff[np.where (diff < 0)] ))[0], 4)[0]
+    thresholdDict[(left, right)].append (stringent_betas[i])
+
+# find minimum beta per allele frequency range
+minimum_betas = np.zeros (len(afs)-1)
+count = 0
+for key in thresholdDict.keys () :
+    minimum_betas[count] = np.min (np.array(np.abs(thresholdDict[key])))
+    count += 1
+
+#for i in range (0, len(afs)-1) :
     #if i % 100 == 0 :
     #    print (i)
 
-    indices = np.where ( (signif_afs >= afs[i]) & (signif_afs < afs[i+1]))
-    minimum_betas[i] = np.min ( np.array(np.abs(signif_betas))[np.array(indices[0])] )
+#    indices = np.where ( (signif_afs >= afs[i]) & (signif_afs < afs[i+1]))
+#    minimum_betas[i] = np.min ( np.array(np.abs(signif_betas))[np.array(indices[0])] )
 
 
 # To generate a function over all allele frequencies we interpolate between
@@ -90,10 +130,14 @@ xnew = np.linspace (np.min(afs[:-1]), np.max(afs[:-1]), 2000)
 f2 = scipy.interpolate.interp1d (afs[:-1], minimum_betas, kind='linear')
 
 # now find the minimum allele frequency for each beta
-minaf = [np.min(xnew[np.where (f2(xnew) - beta < 0)]) for beta in betaMidPoints]
+#minaf = [np.min(xnew[np.where (f2(xnew) - beta < 0)]) for beta in betaMidPoints]
+minaf = [find_threshold (beta=beta, af_function=f2, xvals=xnew) for beta in betaMidPoints]
 
-## Find theoretical expectations for statistics
+print ('The minimum effect size that can be detected is: ' + str(np.min(f2(xnew))))
 
+
+# Find theoretical expectations for statistics
+#---------------------------------------------
 # compute all of the statistics using the empirical effect size distribution
 uniqueaf   = np.unique (minaf) # only need to find for unique afs
 
@@ -173,8 +217,8 @@ plt.close ()
 fig, axs =  plt.subplots ( 1, 2, figsize=(12,5), sharex=True )
 axs[0].plot (taus, ukvas / (2.*uk_trueva), color='dodgerblue', label='distribution' )
 axs[0].plot (taus, uk_meanva / (2.*uk_truevamean), linestyle='--', color='black', label='point mass')
-axs[1].plot (taus, uk_meanva / uk_meanva[0], linestyle='--', color='black')
-axs[1].plot (taus, ukvas / ukvas[0], color='dodgerblue' )
+axs[1].plot (taus, uk_meanva / uk_meanva[0], linestyle='--', color='black', label='point mass')
+axs[1].plot (taus, ukvas / ukvas[0], color='dodgerblue', label='distribution')
 
 # labels
 axs[0].set_xlabel (r'ancient sampling time $\tau$')
@@ -185,6 +229,7 @@ axs[1].set_ylabel (r'$\rho^2 (\tau) /\ \rho^2 (0)$')
 axs[1].set_xlabel (r'ancient sampling time $\tau$')
 axs[1].set_title ('(b) rel.\ accuracy, $h^2=0.5$')
 axs[0].legend (frameon=False)
+axs[1].legend (frameon=False)
 
 # save
 plt.savefig (os.path.join (outputdir, 'uk_accuracy.pdf'), bbox_inches='tight')
