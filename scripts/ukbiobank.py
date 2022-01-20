@@ -18,26 +18,7 @@ import copy as cp
 # my code
 from EqualTheory import *
 from plot_simulations_helper import compute_d_ell
-
-# Functions
-#-------------------------------------------------------------------------------
-def find_threshold (beta, af_function, xvals) :
-    """
-    Takes an effect size (beta) and function relating effect size to minimum
-    allele frequency (af_function) defined over some set of beta values (xvals).
-    Returns the minimum allele frequency associated with each value of beta.
-
-    Note that if the site can not be detected as significant, the function
-    returns a value of one.
-    """
-
-    if beta < np.min (af_function (xvals)) :
-        minaf = 1.0
-    else :
-        minaf = np.min (xnew[np.where (af_function (xvals) - beta < 0)])
-
-    return minaf
-
+from uk_biobank_helper import find_threshold, 
 
 # Data
 #-------------------------------------------------------------------------------
