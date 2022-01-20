@@ -82,6 +82,9 @@ signifStringentDic = collections.OrderedDict ()
 stringent_betas  = list ()
 stringent_afs    = list ()
 
+# alpha snps counter
+nalphasnps = 0
+
 for chrom in alkesDic.keys () :
     signifDic[chrom]          = dict ()
     signifStringentDic[chrom] = dict ()
@@ -91,6 +94,7 @@ for chrom in alkesDic.keys () :
         if pvali <= alpha:
             # add to lax dictionary
             signifDic[chrom][pos] = cp.deepcopy (alkesDic[chrom][pos])
+            nalphasnps += 1
 
             if pvali <= alphaprime :
                 # add to stringent dictionary
@@ -105,6 +109,12 @@ pruned_indices, pruned_betas                     = prune_snps (snpdict=signifDic
 pruned_stringent_indices, pruned_stringent_betas = prune_snps (snpdict=signifStringentDic,
                                                                distance=mindistance)
 
+print ('# total of lax SNPS: ' + str(nalphasnps))
+print ('# of pruned lax SNPs: ' + str(len(pruned_betas)))
+print ('# total of stringent SNPS: ' + str(len(stringent_betas)))
+print ('# of pruned stringent SNPs: ' + str(len(pruned_stringent_betas)))
+
+
 # list of significant SNPs and their effect sizes
 #signif_betas = list ()
 #signif_afs   = list ()
@@ -115,15 +125,21 @@ pruned_stringent_indices, pruned_stringent_betas = prune_snps (snpdict=signifStr
 
 # discretize effect size distribution: find midpoints for lax and stringent
 # lax
-betaDensity   = plt.hist (np.abs(pruned_betas), bins=nbins, density=False)
+minpruned = np.min (np.abs (pruned_betas))
+maxpruned = np.max (np.abs (pruned_betas))
+betaDensity   = plt.hist (np.abs(pruned_betas), density=False,
+                          bins=np.logspace( np.log10(minpruned), np.log10(maxpruned), nbins))
 betaMidPoints = ( (betaDensity[1][:-1] + betaDensity[1][1:]) / 2 )
 # stringent
-betaStringentDensity   = plt.hist (np.abs(pruned_stringent_betas), bins=nbins, density=False)
+minprunedstringent = np.min (np.abs (pruned_stringent_betas))
+maxprunedstringent = np.max (np.abs (pruned_stringent_betas))
+betaStringentDensity   = plt.hist (np.abs(pruned_stringent_betas), density=False,
+                                   bins=np.logspace( np.log10(minprunedstringent), np.log10(maxprunedstringent), nbins ))
 betaStringentMidPoints = ( (betaStringentDensity[1][:-1] + betaStringentDensity[1][1:]) / 2 )
 
 # Now, we want to find the minimum af needed to detect an effect of the sizes given above
 #afs = np.linspace (1e-3, 0.5, nbins)
-afs = np.logspace (-3, 10**(0.5), nbins)
+afs = np.logspace (-3, np.log10(0.5), nbins)
 
 # create dictionary of effect estimates indexed by allele frequency range (rounded)
 thresholdDict = collections.OrderedDict ()
@@ -159,7 +175,8 @@ for key in thresholdDict.keys () :
 
 # To generate a function over all allele frequencies we interpolate between
 # allele frequencies
-xnew = np.linspace (np.min(afs[:-1]), np.max(afs[:-1]), 2000)
+#xnew = np.linspace (np.min(afs[:-1]), np.max(afs[:-1]), 2000)
+xnew = np.logspace (np.log10(np.min(afs[:-1])), np.log10(np.max(afs[:-1])), nbins*2)
 
 # interpolation
 zbetafunction = scipy.interpolate.interp1d (afs[:-1], minimum_betas, kind='linear')
@@ -244,14 +261,17 @@ fig, axs =  plt.subplots ( 1, 3, figsize=(16,4), sharex=True, sharey=False )
 
 #axs[0].hist (np.abs(signif_betas), bins=1000, density=False, color='dodgerblue')
 # panel (a)
-axs[0].hist (np.abs(pruned_betas), bins=1000, density=False, color='dodgerblue', label=sci_notation(alpha))
-axs[0].hist (np.abs(pruned_stringent_betas), bins=1000, density=False, color='orange', label=sci_notation(alphaprime))
+axs[0].hist (np.abs(pruned_betas), bins=np.logspace( np.log10(minpruned), np.log10(maxpruned), nbins),
+             density=False, color='dodgerblue', label=sci_notation(alpha))
+axs[0].hist (np.abs(pruned_stringent_betas), bins=np.logspace( np.log10(minpruned), np.log10(maxpruned), nbins),
+             density=False, color='orange', label=sci_notation(alphaprime))
 # panel (b)
 axs[1].scatter (betaMidPoints, betaDensity[0] / np.sum (betaDensity[0]), color='dodgerblue', marker='v',
                 label=sci_notation(alpha), s=5)
 axs[1].scatter (betaStringentMidPoints, betaStringentDensity[0] / np.sum (betaStringentDensity[0]), color='orange',
                 marker='1', label=sci_notation(alphaprime), s=5)
 # panel (c)
+axs[2].plot (betaMidPoints, minaf, color='dodgerblue', label=sci_notation(alpha))
 axs[2].plot (betaStringentMidPoints, minafStringent, color='orange', label=sci_notation(alphaprime))
 
 axs[0].set_xscale ('log')
