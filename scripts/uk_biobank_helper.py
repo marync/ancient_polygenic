@@ -1,3 +1,5 @@
+import numpy as np
+
 #-------------------------------------------------------------------------------
 # Functions specific to UK Biobank analysis
 #-------------------------------------------------------------------------------
@@ -14,7 +16,7 @@ def find_threshold (beta, af_function, xvals) :
     if beta < np.min (af_function (xvals)) :
         minaf = 1.0
     else :
-        minaf = np.min (xnew[np.where (af_function (xvals) - beta < 0)])
+        minaf = np.min (xvals[np.where (af_function (xvals) - beta < 0)])
 
     return minaf
 
@@ -55,7 +57,7 @@ def prune_snps (snpdict, distance) :
                 if max_index <= (len(signif_bp) -1 ) :
                     right_distance = signif_bp[max_index] - max_bp
 
-                    if right_distance < mindistance :
+                    if right_distance < distance :
                         signif_bp.pop (max_index)
                         signif_pvalues.pop (max_index)
                     else :
@@ -69,7 +71,7 @@ def prune_snps (snpdict, distance) :
                 if (max_index - 1) >= 0 :
                     left_distance = max_bp - signif_bp[max_index-1]
 
-                    if left_distance < mindistance :
+                    if left_distance < distance :
                         signif_bp.pop (max_index-1)
                         signif_pvalues.pop (max_index-1)
                         max_index -= 1 # increment index
