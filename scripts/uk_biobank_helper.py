@@ -1,4 +1,6 @@
 import numpy as np
+import scipy
+import scipy.stats
 
 #-------------------------------------------------------------------------------
 # Functions specific to UK Biobank analysis
@@ -14,11 +16,27 @@ def find_threshold (beta, af_function, xvals) :
     """
 
     if beta < np.min (af_function (xvals)) :
-        minaf = 1.0
+        minaf = np.NAN
     else :
         minaf = np.min (xvals[np.where (af_function (xvals) - beta < 0)])
 
     return minaf
+
+
+def folded_normal_mixture (xs, mixtureprops, variances) :
+    """
+    Computes the pmf of a mixture of folded normals over a discrete set of linearly
+    spaced values.
+    """
+
+    pmf = np.zeros (len(xs))
+    for i in range(len(mixtureprops)) :
+        C    = np.sum (scipy.stats.foldnorm.pdf (xs, c=0, loc=0, scale=variances[i]))
+        pmf += mixtureprops[i] * scipy.stats.foldnorm.pdf (xs, c=0, loc=0, scale=variances[i]) / C
+
+    return pmf / np.sum (pmf)
+
+
 
 
 def prune_snps (snpdict, distance) :
