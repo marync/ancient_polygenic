@@ -41,8 +41,10 @@ nbins           = 250                     # number of bins by which to discretiz
 #-------------------------------------------------------------------------------
 expmeans     = [10,100,500] # exponential means
 gammascales  = [10**(-3),0.5] # gamma shape parameters
-mixtureprops = [float(1/2), float(1/3), float(1/6)] # mixture proportions for normal
-mixturevars  = [0.001,0.1,1.] # mixture variances for normal
+#mixtureprops = [float(1/2), float(1/3), float(1/6)] # mixture proportions for normal
+#mixturevars  = [0.001,0.1,1.] # mixture variances for normal
+mixtureprops = [0.9,0.1]
+mixturevars  = [1.5439*10**(-5),2.021*10**(-4)]
 
 # number of distributions
 npdfs  = len(expmeans) + len(gammascales) + 1
@@ -53,7 +55,7 @@ labels = ['exp, ' + str(expmeans[0]), 'exp, ' + str(expmeans[1]), 'exp, ' + str(
 lines  = [':',':',':','--','--','-']
 
 # beta values at which to discretize
-betavals = np.linspace (10**(-4), 0.05, 5000)
+betavals = np.linspace (10**(-4), 0.1, 5000)
 
 # read data
 #-------------------------------------------------------------------------------
