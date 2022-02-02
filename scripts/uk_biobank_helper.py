@@ -31,8 +31,8 @@ def folded_normal_mixture (xs, mixtureprops, variances) :
 
     pmf = np.zeros (len(xs))
     for i in range(len(mixtureprops)) :
-        C    = np.sum (scipy.stats.foldnorm.pdf (xs, c=0, loc=0, scale=variances[i]))
-        pmf += mixtureprops[i] * scipy.stats.foldnorm.pdf (xs, c=0, loc=0, scale=variances[i]) / C
+        C    = np.sum (scipy.stats.foldnorm.pdf (xs, c=0, loc=0, scale=np.sqrt(variances[i])))
+        pmf += mixtureprops[i] * scipy.stats.foldnorm.pdf (xs, c=0, loc=0, scale=np.sqrt(variances[i])) / C
 
     return pmf / np.sum (pmf)
 
