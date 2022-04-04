@@ -21,7 +21,7 @@ if whichplot not in ['figure3', 'figure4', 'ukbiobank'] :
     print ('User argument not valid. Valid options:')
     print ( ['figure3', 'figure4', 'ukbiobank'] )
 
-if whichplot == 'figure3' :
+if whichplot == 'figure3' or whichplot == 'figure4' :
     fst = bool(sys.argv[2] == 'True')
 
 print ('Producing plot: ' + whichplot)
@@ -161,10 +161,11 @@ elif whichplot == 'figure3' :
 
     axins.locator_params (axis="y", nbins=2)
     axins.invert_xaxis ()
-    axins.set_title ('rel.\ accuracy')
+    axins.set_title ('rel.\ accuracy', loc='left')
     axins.set_xlabel ('')
 
-    axs[1].set_title ('(b) accuracy, varying $h^2$')
+    #axs[1].set_title ('(b) accuracy, varying $h^2$')
+    axs[1].set_title (r'\textbf{B} accuracy, varying $h^2$', loc='left')
     axs[0].invert_xaxis ()
 
     stat_handles = []

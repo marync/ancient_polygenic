@@ -226,24 +226,29 @@ axs[0].axvline(x=np.min(minimum_betas),linewidth=1,linestyle='--',color='black')
 axs[1].axvline(x=np.min(minimum_betas),linewidth=1,linestyle='--',color='black')
 axs[2].axvline(x=np.min(minimum_betas),linewidth=1,linestyle='--',color='black')
 
-axs[0].set_title ('(a) causal effect distributions')
+#axs[0].set_title ('(a) causal effect distributions')
 axs[0].set_xscale ('log')
 axs[0].set_xlabel (r'$|\beta|$')
 axs[0].set_ylabel (r'$f_\cdot (\cdot)$')
 axs[0].legend (markerscale=10, frameon=False)
 
-axs[1].set_title ('(b) allele freq.\ threshold')
+#axs[1].set_title ('(b) allele freq.\ threshold')
 axs[1].set_xscale ('log')
 axs[1].set_ylabel (r'$g_\alpha (|\beta|)$')
 axs[1].set_xlabel (r'$|\beta|$')
 axs[1].set_xlim ((0.9*np.min(minimum_betas),np.max(betavals)))
 
-axs[2].set_title ('(c) contribution to variance')
+#axs[2].set_title ('(c) contribution to variance')
 axs[2].set_ylabel (r'norm.\ contrib.\ to $V_A$ or $\hat V_A (0)$')
 axs[2].set_xlabel (r'$|\beta|$')
 axs[2].set_xscale ('log')
 axs[2].set_yscale ('log')
 axs[2].legend (frameon=False)
+
+# plos genetics formatting
+axs[0].set_title (r'\textbf{A} causal effect distributions', loc='left')
+axs[1].set_title (r'\textbf{B} allele freq.\ threshold', loc='left')
+axs[2].set_title (r'\textbf{C} contribution to variance', loc='left')
 
 # save
 plt.savefig (os.path.join (outputdir, 'uk_beta_distribution.pdf'), bbox_inches='tight')
@@ -259,14 +264,18 @@ for i in range(npdfs) :
 # labels
 axs[0].set_xlabel (r'ancient sampling time $\tau$')
 axs[0].set_ylabel (r'$\rho^2 (\tau)$')
-axs[0].set_title (r'(a) accuracy, $h^2=0.5$')
+#axs[0].set_title (r'(a) accuracy, $h^2=0.5$')
 axs[0].invert_xaxis ()
 axs[0].legend (frameon=False)
 
 axs[1].set_ylabel (r'$\rho^2 (\tau) /\ \rho^2 (0)$')
 axs[1].set_xlabel (r'ancient sampling time $\tau$')
-axs[1].set_title ('(b) rel.\ accuracy, $h^2=0.5$')
+#axs[1].set_title ('(b) rel.\ accuracy, $h^2=0.5$')
 axs[1].legend (frameon=False)
+
+# plos genetics formatting
+axs[0].set_title (r'\textbf{A} accuracy, $h^2=0.5$', loc='left')
+axs[1].set_title (r'\textbf{B} rel.\ accuracy, $h^2=0.5$', loc='left')
 
 # save
 plt.savefig (os.path.join (outputdir, 'uk_accuracy.pdf'), bbox_inches='tight')

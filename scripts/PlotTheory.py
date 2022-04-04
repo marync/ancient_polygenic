@@ -159,12 +159,22 @@ class PlotTheory :
         else :
             normstring = ''
 
-        axs[0,0].set_title (r'(a) ' + normstring + r' $2aP^{(d)}$, low $d$')
-        axs[1,0].set_title (r'(d) ' + normstring + r' $2aP^{(d)}$, high $d$')
-        axs[0,1].set_title (r'(b) ' + normstring + r' $mse_\ell (0)$, low $d$')
-        axs[1,1].set_title (r'(e) ' + normstring + r' $mse_\ell (0)$, high $d$')
-        axs[0,2].set_title (r'(c) ' + normstring + r' $\hat V_{A\ell} (0)$, low $d$')
-        axs[1,2].set_title (r'(f) ' + normstring + r' $\hat V_{A\ell} (0)$, high $d$') 
+        # old titles
+        #axs[0,0].set_title (r'(a) ' + normstring + r' $2aP^{(d)}$, low $d$')
+        #axs[1,0].set_title (r'(d) ' + normstring + r' $2aP^{(d)}$, high $d$')
+        #axs[0,1].set_title (r'(b) ' + normstring + r' $mse_\ell (0)$, low $d$')
+        #axs[1,1].set_title (r'(e) ' + normstring + r' $mse_\ell (0)$, high $d$')
+        #axs[0,2].set_title (r'(c) ' + normstring + r' $\hat V_{A\ell} (0)$, low $d$')
+        #axs[1,2].set_title (r'(f) ' + normstring + r' $\hat V_{A\ell} (0)$, high $d$') 
+
+        # plos genetics formatting
+        axs[0,0].set_title (r'\textbf{A} ' + normstring + r' $2aP^{(d)}$, low $d$', loc='left')
+        axs[1,0].set_title (r'\textbf{D} ' + normstring + r' $2aP^{(d)}$, high $d$', loc='left')
+        axs[0,1].set_title (r'\textbf{B} ' + normstring + r' $mse_\ell (0)$, low $d$', loc='left')
+        axs[1,1].set_title (r'\textbf{E} ' + normstring + r' $mse_\ell (0)$, high $d$', loc='left')
+        axs[0,2].set_title (r'\textbf{C} ' + normstring + r' $\hat V_{A\ell} (0)$, low $d$', loc='left')
+        axs[1,2].set_title (r'\textbf{F} ' + normstring + r' $\hat V_{A\ell} (0)$, high $d$', loc='left')
+
 
         fig.tight_layout(pad=.75)
         plt.savefig(os.path.join(self.outputdir, 'figure_S3' + normstring + '.pdf'),bbox_inches='tight') 
@@ -268,6 +278,13 @@ class PlotTheory :
         legd = axs[0,0].legend (lines_d, formatted_ds, title=r'$d$', frameon=False, bbox_to_anchor=(-0.2,0.1)) #prop={'size': 12},  
         #legd = axs[0,0].legend (lines_d, extrads, title=r'$d$', frameon=False, bbox_to_anchor=(-0.2,0.1)) #prop={'size': 12},  
         axs[0,0].add_artist(legd)
+
+        #####################################################
+        # changing for Plos formatting requirements
+        #axs[0,0].text(-0.05,.1, 'A', weight='bold', transform=axs[0,0].gcf().transFigure)
+        #plt.text(0.02, 0.5, textstr, fontsize=14, transform=plt.gcf().transFigure)
+
+
 
         # save figure
         fig.tight_layout(pad=0.75)
@@ -392,12 +409,20 @@ class PlotTheory :
                         axs[1,1].plot(xvals, theoryij.evaapprox / trueva, c='black', alpha=alphaj, markevery=slicej, marker=self.markers[j], lw=1)
 
         # plot titles
-        axs[0,0].set_title (r'(a) change in $mse_\ell (\tau)$')
-        axs[0,1].set_title (r'(b) normalized $mse_\ell (\tau)$')
-        axs[0,2].set_title (r'(c) varying $d$')
-        axs[1,0].set_title (r'(d) change in $\hat V_{A\ell}$') 
-        axs[1,1].set_title (r'(e) normalized $\hat V_{A\ell} (\tau)$') 
-        axs[1,2].set_title (r'(f) varying $d$')
+        #axs[0,0].set_title (r'(a) change in $mse_\ell (\tau)$')
+        #axs[0,1].set_title (r'(b) normalized $mse_\ell (\tau)$')
+        #axs[0,2].set_title (r'(c) varying $d$')
+        #axs[1,0].set_title (r'(d) change in $\hat V_{A\ell}$') 
+        #axs[1,1].set_title (r'(e) normalized $\hat V_{A\ell} (\tau)$') 
+        #axs[1,2].set_title (r'(f) varying $d$')
+
+        # plot genetics formatting
+        axs[0,0].set_title (r'\textbf{A} change in $mse_\ell (\tau)$', loc='left')
+        axs[0,1].set_title (r'\textbf{B} normalized $mse_\ell (\tau)$', loc='left')
+        axs[0,2].set_title (r'\textbf{C} varying $d$', loc='left')
+        axs[1,0].set_title (r'\textbf{D} change in $\hat V_{A\ell}$', loc='left')
+        axs[1,1].set_title (r'\textbf{E} normalized $\hat V_{A\ell} (\tau)$', loc='left')
+        axs[1,2].set_title (r'\textbf{F} varying $d$', loc='left')
 
         # yscales
         axs[0,0].set_yscale ('log')
@@ -464,7 +489,9 @@ class PlotTheory :
             fig.colorbar(pcm, ax=axs[i])
             axs[i].set_xscale ('log')
             axs[i].set_ylabel(r'$d_\ell$', rotation=90)
-            axs[i].set_title (r'$a=$'+ ' ' + str(avals[i]))
+            #axs[i].set_title (r'$a=$'+ ' ' + str(avals[i]))
+            # plos genetics
+            axs[i].set_title (r'\textbf{B} $a=$'+ ' ' + str(avals[i]), loc='left')
 
         axs[1].set_xlabel(r'GWA study size, $n$')
         plt.savefig(os.path.join(self.outputdir, 'figure_S2b.pdf'),
@@ -507,9 +534,13 @@ class PlotTheory :
         ax.invert_xaxis ()
 
         if threshold_as_n :
-            ax.set_title (r'$d_{\ell 1}=$ ' + str(d1) + ', ' + r'$d_{\ell 2}=n$')
+            #ax.set_title (r'$d_{\ell 1}=$ ' + str(d1) + ', ' + r'$d_{\ell 2}=n$')
+            # plos genetics
+            ax.set_title (r'\textbf{A} $bias (\tau)$ with $d_{\ell 1}=$ ' + str(d1) + ', ' + r'$d_{\ell 2}=n$', loc='left')
         else :
-            ax.set_title (r'$d_{\ell 1}=$' + str(d1) + ', ' + r'$d_{\ell 2}=$' + str(d2))
+            #ax.set_title (r'$d_{\ell 1}=$' + str(d1) + ', ' + r'$d_{\ell 2}=$' + str(d2))
+            # plos genetics
+            ax.set_title (r'\textbf{A} $2P^{(d_\ell)}$ with $d_{\ell 1}=$' + str(d1) + ', ' + r'$d_{\ell 2}=$' + str(d2), loc='left')
 
         # custom n lines
         custom_lines_n = []

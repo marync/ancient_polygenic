@@ -152,9 +152,12 @@ def plot_accuracies_a_b (axs, h2, aval, n, ds, times, fst=False) :
 
         custom_lines_ds.append (mpl.lines.Line2D([0], [0], color='black', alpha=alphas[j], lw=1, linestyle=linestyles[linestyle_d]))
 
-    axs.set_title (r'(a) accuracy, varying $d$')
-    axins.set_title (r'rel.\ accuracy')
+    #axs.set_title (r'(a) accuracy, varying $d$')
+    axins.set_title (r'rel.\ accuracy', loc='left')
     axs.set_ylabel (r'$\rho^2 (\tau)$')
+
+    # plos genetics formatting
+    axs.set_title (r'\textbf{A} accuracy, varying $d$', loc='left')
 
     axins.invert_xaxis ()
     axins.locator_params (axis="y", nbins=2)
@@ -221,13 +224,17 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
     markers = ['o','x','v']
 
     if stat == 'bias' :
-        title = r'(a) $bias_\ell (\tau )$'
+        #title = r'(a) $bias_\ell (\tau )$'
+        title = r'\textbf{A} $bias_\ell (\tau )$' # plos gen
     elif stat == 'mse' :
-        title = r'(b) $mse_\ell (\tau )$'
+        #title = r'(b) $mse_\ell (\tau )$'
+        title = r'\textbf{B} $mse_\ell (\tau )$'
     elif (stat == 'rho2_trait' or stat == 'rho_tau') and not relative :
-        title = r'(c) accuracy'
+        #title = r'(c) accuracy'
+        title = r'\textbf{C} accuracy'
     elif stat == 'rho2_trait' and relative :
-        title = r'(d) relative accuracy'
+        #title = r'(d) relative accuracy'
+        title = r'\textbf{D} relative accuracy'
     if va is not None :
         title += r' normalized'
 
@@ -328,7 +335,8 @@ def plot_stat (ax, a, n, N,  results_dictionary, stat, times, preambles, h2=Fals
         threshold_counter += 1
 
     # set axis title
-    ax.set_title (title)
+    #ax.set_title (title)
+    ax.set_title (title, loc='left')
 
     if ylabel is not None :
         ax.set_ylabel (ylabel)
